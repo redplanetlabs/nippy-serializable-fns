@@ -1,6 +1,8 @@
 (def VERSION (.trim (slurp "VERSION")))
 
-(defproject rpl/nippy-serializable-fns VERSION
+(defproject com.rpl/nippy-serializable-fns VERSION
+  :description "An extension for Nippy that allows freezing and thawing Clojure fns."
+  :url "https://github.com/redplanetlabs/nippy_serializable_fns"
   :dependencies [[org.clojure/clojure "1.10.0"]
                  [com.taoensso/nippy "2.14.0"]]
   :jvm-opts [;; this prevents JVM from doing optimizations which can

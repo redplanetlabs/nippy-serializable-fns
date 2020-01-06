@@ -1,6 +1,6 @@
-(ns rpl.nippy-serializable-fn-test
+(ns com.rpl.nippy-serializable-fn-test
   (:require [clojure.test :refer :all]
-            [rpl.nippy-serializable-fn :as serfn]
+            [com.rpl.nippy-serializable-fn :as serfn]
             [taoensso.nippy :as nippy]))
 
 (serfn/clear-cache)

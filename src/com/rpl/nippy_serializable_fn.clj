@@ -1,4 +1,4 @@
-(ns rpl.nippy-serializable-fn
+(ns com.rpl.nippy-serializable-fn
   "This namespace custom freeze/thaw implementations that allow Clojure fns to
 be serialized with all the standard Nippy freeze/thaw fns.
 
