@@ -115,7 +115,7 @@ during interactive development."
                ^MethodHandle ~accessor-sym
                ^List (. Collections (singletonList ~afn-sym)))))
             accessor-syms)]
-    (eval `(let [~klass-sym (Class/forName ~class-name)
+    (eval `(let [~klass-sym (clojure.lang.RT/classForName ~class-name)
                  ~@accessor-lookups]
              (fn [~afn-sym ~data-output-sym]
                (nippy/freeze-to-out! ~data-output-sym ~class-name)
@@ -172,7 +172,7 @@ during interactive development."
   )
 
 (defn- mk-deserializer-for-anon-fn [class-name]
-  (let [klass (Class/forName class-name)
+  (let [klass (clojure.lang.RT/classForName class-name)
         fields (fields-to-serialize ^Class klass)
         read-fields-into-array (eval (gen-read-n-fields (count fields)))
         field-types (mapv #(.getType ^Field %) fields)
