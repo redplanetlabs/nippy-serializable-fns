@@ -193,6 +193,7 @@ during interactive development."
   ((deserializer-for-fn-class class-name) data-input))
 
 (defn- thaw-static-fn [var-sym]
+  (require (symbol (namespace var-sym)))
   (var-get (resolve var-sym)))
 
 ;; these extend-thaw / extend-freeze blocks are what install the custom handlers.
