@@ -1,4 +1,4 @@
-(defproject com.rpl/nippy-serializable-fns "0.2.0"
+(defproject com.rpl/nippy-serializable-fns "0.3.0"
   :description "An extension for Nippy that allows freezing and thawing Clojure fns."
   :url "https://github.com/redplanetlabs/nippy-serializable-fns"
   :dependencies [[org.clojure/clojure "1.10.0"]
