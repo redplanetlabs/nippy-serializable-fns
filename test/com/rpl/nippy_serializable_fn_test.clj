@@ -74,6 +74,14 @@
   (is (= {:my "meta"} (meta (roundtrip (with-meta regular-fn-with-closure {:my "meta"})))))
   )
 
+(defprotocol Foo
+  (prot1 [this a])
+  (prot2 [this a b]))
+
+(deftest roundtrip-protocol-fn
+  (is (identical? prot1 (roundtrip prot1)))
+  (is (identical? prot2 (roundtrip prot2)))
+  )
 
 ;; performance experiment code
 (comment

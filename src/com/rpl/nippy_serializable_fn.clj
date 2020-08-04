@@ -51,22 +51,43 @@ encountered, then it will cause an error.
     (clojure.string/replace s #"\.([^.]*)$" "/$1"))
   )
 
-(defn- var-name-from-class-name
+
+(defn resolve-fn-var
   "When a fn is created via defn, the name of the fn class and the var that holds
    the fn instance are related and can be determined. In most cases, they are an
    almost exact match (modulo munging), except for:
     * when the fn has a closure, it'll have a gensym'd number at the end
     * when fn is evaluated in the repl, it'll include more or more '$eval' name
-      segments that are not reflected in the var name"
-  [class-name]
-  (-> class-name
-      ;; remove trailing instance garbage
-      (clojure.string/replace #"__\d+$" "")
-      ;; remove the "evalXXXX" that pops up if you've got a closure
-      (clojure.string/replace #"\$eval\d+\$" "\\$")
-      clojure.lang.Compiler/demunge
-      make-qualified
-      ))
+      segments that are not reflected in the var name
+    * when the fn is a protocol method the class name must be retrieved via the
+      methodImplCache"
+  [v]
+  (let [cls  ^Class (class v)
+        vsym (symbol (clojure.lang.Compiler/demunge (.getName cls)))
+        found-var (or (resolve vsym)
+                      (some-> v
+                              (.__methodImplCache)
+                              (.sym)
+                              resolve)
+                      ;; this case handles functions like clojure.core/first which
+                      ;; has a class name like clojure.core$first__5369
+                      ;; the demunge converts __ in class name to --
+                      (-> cls
+                          .getName
+                          ;; remove trailing instance garbage
+                          (clojure.string/replace #"__\d+$" "")
+                          ;; remove the "evalXXXX" that pops up if you've got a closure
+                          (clojure.string/replace #"\$eval\d+\$" "\\$")
+                          clojure.lang.Compiler/demunge
+                          make-qualified
+                          symbol
+                          resolve
+                          )
+                      )
+        ]
+    (if (and found-var (identical? (var-get found-var) v))
+      found-var
+      )))
 
 (defn clear-cache
   "Clear all cached generated serializer and deserializer fns. You typically
@@ -92,8 +113,9 @@ during interactive development."
 ;; MethodHandle that can access the fields that end up on the class for the fn.
 ;; MethodHandles are magic and basically have the same performance as actually
 ;; accessing a field natively.
-(defn- mk-serializer-for-anon-fn [^Class fn-class]
-  (let [class-name (.getName fn-class)
+(defn- mk-serializer-for-anon-fn [afn]
+  (let [fn-class ^Class (class afn)
+        class-name (.getName fn-class)
         klass-sym (gensym "klass")
         afn-sym (gensym "afn")
         data-output-sym (gensym "data-output")
@@ -134,19 +156,17 @@ during interactive development."
 (defn- afunction-inner-class? [^Class cls]
   (= clojure.lang.AFunction$1 cls))
 
-(defn- mk-serializer-for-fn [^Class fn-class]
-  (let [cls-name (.getName fn-class)
-        vname (var-name-from-class-name cls-name)
-        rv    (resolve (symbol vname))]
+(defn- mk-serializer-for-fn [afn]
+  (let [rv (resolve-fn-var afn)]
     (if rv
-      (mk-serializer-for-static-fn (symbol vname))
-      (mk-serializer-for-anon-fn fn-class)))
+      (mk-serializer-for-static-fn (symbol rv))
+      (mk-serializer-for-anon-fn afn)))
   )
 
 (defn- serializer-for-fn [afn]
   (if-let [serializer (get @serializer-cache (class afn))]
     serializer
-    (let [serializer (mk-serializer-for-fn (class afn))]
+    (let [serializer (mk-serializer-for-fn afn)]
       (swap! serializer-cache assoc (class afn) serializer)
       serializer)))
 

@@ -1,3 +1,6 @@
+# 0.4.0
+- Fix serialization of protocol methods
+
 # 0.3.0
 - Fixed thawing static fns when namespace isn't required yet 
 
