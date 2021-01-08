@@ -35,7 +35,8 @@ encountered, then it will cause an error.
 "
   (:require [taoensso.nippy :as nippy]
             )
-  (:import [java.lang.reflect Field Modifier]
+  (:import [clojure.lang AFunction]
+           [java.lang.reflect Field Modifier]
            [java.lang.invoke MethodHandle MethodHandles]
            [java.util List Collections])
   )
@@ -65,7 +66,7 @@ encountered, then it will cause an error.
   (let [cls  ^Class (class v)
         vsym (symbol (clojure.lang.Compiler/demunge (.getName cls)))
         found-var (or (resolve vsym)
-                      (some-> v
+                      (some-> ^AFunction v
                               (.__methodImplCache)
                               (.sym)
                               resolve)
