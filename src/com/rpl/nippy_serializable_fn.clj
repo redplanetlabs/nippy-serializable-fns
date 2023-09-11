@@ -41,6 +41,8 @@ encountered, then it will cause an error.
            [java.util List Collections])
   )
 
+(def ^:dynamic *allow-anon-serialization* true)
+
 (defonce method-handle-lookup (. MethodHandles (lookup)))
 
 (defonce ^:private serializer-cache (atom {}))
@@ -115,6 +117,8 @@ during interactive development."
 ;; MethodHandles are magic and basically have the same performance as actually
 ;; accessing a field natively.
 (defn- mk-serializer-for-anon-fn [afn]
+  (when (not *allow-anon-serialization*)
+    (throw (ex-info "Anonymous function serialization not allowed in this context" {})))
   (let [fn-class ^Class (class afn)
         class-name (.getName fn-class)
         klass-sym (gensym "klass")

@@ -83,6 +83,11 @@
   (is (identical? prot2 (roundtrip prot2)))
   )
 
+(deftest disallow-test
+  (binding [serfn/*allow-anon-serialization* false]
+    (is (thrown? Exception (nippy/freeze (fn [] ))))
+    ))
+
 ;; performance experiment code
 (comment
  (def z 1)
